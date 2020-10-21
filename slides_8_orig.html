@@ -1,0 +1,753 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="author" content="Emre Neftci">
+<title>Neural Networks and Machine Learning</title>
+
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/reveal.css">
+<link rel="stylesheet" href="css/theme/nmilab.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/dreampulse/computer-modern-web-font/master/fonts.css">
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+<link rel="stylesheet" type="text/css" href="lib/css/monokai.css">
+
+<!-- Printing and PDF exports -->
+<script>
+  var link = document.createElement( 'link' );
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+  document.getElementsByTagName( 'head' )[0].appendChild( link );
+</script>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!--
+<section data-markdown><textarea data-template>
+<h2> </h2>                                                     
+<ul>
+  <li/>
+</ul>
+</textarea></section>
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/surrogate-gradient-learning/pytorch-lif-autograd/blob/master/tutorial01_dcll_localerrors.ipynb)
+-->
+
+
+<section data-markdown data-vertical-align-top data-background-color=#B2BA67><textarea data-template>
+    <h1> Neural Networks and Machine Learning </h1>
+    <h2> Week 8: Recurrent Neural Networks And Brain-Inspired Deep Learning</h2>
+
+    ### Instructor: Emre Neftci
+
+  <center>https://canvas.eee.uci.edu/courses/21750</center>
+  <center>http://tinyurl.com/nmi-lab-appointments</center>
+
+  [![Print](pli/printer.svg)](?print-pdf)
+
+</textarea>
+</section>
+
+<section data-markdown><textarea data-template>
+<h2> Time-Dependent Data </h2>                                                     
+<ul>
+  <li/> Almost all real-world data has a time-like dimension: For example:
+    <ul>
+      <li />Videos
+        <img src="images/video_data.png" class=vsmall />
+      <li />Audio
+        <img src="pli/some_soundwave.jpg" class=vsmall />
+      <li />Text
+        <img src="images/pos.png" class=vsmall />
+    </ul>
+
+  <li class=fragment /> So Time is just another dimension, like channels in images. But what is special about it?
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> How to Deal with Variable-Sized Dimensions?</h2>                                                     
+<ul>
+  <li/> Time is a variable dimension. Until now, we dealt with data having static dimensions. There are two ways to deal with this:
+  <ol>
+  <li class=fragment /> Fix the size, truncate (pad) the data that has a larger (smaller) dimension. For example for size 2:
+    <ul>
+      <li/> Three data samples: [[1, 5, 6], [3,4], [3]] $\rightarrow$ [[1, 5], [3,4], [3, None]]
+      <li /> Once the size is fixed, a feed-forward neural network can be used
+    </ul>
+    
+  <li class=fragment /> Use a recursive algorithm: Feed in the data time step by time step and keep a memory of the previously fed data samples
+    <ul>
+      <li/> [[1, 5, 6], [3,4], [3]] $\rightarrow$ [[1,3,3],[5,4, -],[3,-, -]
+      <li /> - is a special symbol means end-of-sequence. Recurrent neural networks are designed to deal with such data
+    </ul>
+  </ol>
+</ul>
+<div class=fragment ><p class=pl> This lecture will focus on approaches under 2.</div>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Recurrent Neural Networks and Working Memory </h2>
+
+<div class=row>
+<div class=column>
+<p>Working Memory:</p>
+<ul>
+<li /> A type of short-term memory
+<li /> Limited in capacity
+<li /> Task- and sensory modality-dependent
+<li /> Necessary for cognitive control
+</ul>
+</div>
+<div class=column>
+  <img src="images/brain_wm.png" />
+  Human brain areas for working
+memory of face identity and
+location
+</div>
+</div>
+
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Neural Correlates of Working Memory </h2>
+
+<img src="images/primate_task.png" class=stretch />
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Working Memory of Cognitive Control </h2>
+
+<img src="images/12ax.png" class=stretch />
+<p class=ref>O’Reilly and Frank, 2006</p>
+
+<p class=pl> How does the brain implement working memory? </p>
+</textarea></section>
+
+
+
+<section data-markdown><textarea data-template>
+<h2> Recurrent Neural Networks (RNNs) in Neuroscience </h2>
+
+<ul>
+<li /> Most models hypothesize that short term memory is a process supported by recurrent connections
+<li /> An RNN is a network in which the output feeds back into the network (A: Feedforward, B: Recurrent)
+  <img src="pli/feedfoward_vs_recurrent.png" class=small  />
+
+<li /> The majority of connections in the brain are recurrent
+  <div class=row>
+    <div class=column>
+    <img src="pli/cortical_microcircuit.png" />
+    <p class=ref> Douglas and Martin, 1989</p>
+    </div>
+    <div class=column>
+      <blockquote>
+        ... physically mapped the synapses on the dendritic trees (...) in layer 4 of the cat primary visual cortex and found that only 5% of the excitatory synapses arose from the lateral geniculate nucleus (LGN)
+      </blockquote>
+      <p class=ref> Binzegger et al. 2004</p>
+    </div>
+  </div>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Recurrent Neural Networks (RNNs) in Neuroscience </h2>
+
+<ul>
+  <li /> Recurrent connectivity can support sustained activity
+  <div class=row>
+  <div class=column>
+  <img src="images/F1.large.jpg"  />
+  </div>
+  <div class=column>
+  <img src="images/F2.large.jpg" class=large />
+  </div>
+  </div>
+  <p class=ref> Murray et al. 2017 </p>
+  <li /> Such models are difficult to train due to stability issues
+</ul>
+
+</textarea></section>
+
+
+<section data-markdown><textarea data-template>
+<h2> Models of Recurrent Neural Networks in Neuroscience</h2>
+<h3>Liquid State Machines </h3>
+<img src="images/lsm.svg">
+<p class=ref>Maass et al. 2002</p>
+<ul>
+  <li/> One of the earlier trainable models of RNNs
+  <li/> Also known as Reservoir Learning, Extreme Learning Machines
+  <li/> Only readout connections are trained in a gradient based fashion. Easy to learn, but does not scale well.
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Models of Recurrent Neural Networks in Neuroscience</h2>
+<h3> FORCE Learning </h3>
+<div class=row>
+<div class=column>
+<img src="images/susillo1.png" class=large />
+</div>
+<div class=column>
+<img src="images/susillo2.png">
+</div>
+</div>
+<p class=ref>Susillo and Abbott, 2009</p>
+<ul>
+  <li/> Some recurrent connections are trained
+  <li/> Does not take into account the history of the activities
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Models of Recurrent Neural Networks in Neuroscience</h2>
+<h3> Surrogate Gradient Learning </h3>
+<div class=row>
+<img src="images/sgdecolle.png">
+</div>
+<p class=ref>Neftci, Mostafa, Zenke, 2019</p>
+<ul>
+  <li/> Models biological neurons as artificial recurrent neural networks and uses approximate gradient-based learning
+  <li/> Recurrent connections are trained with partial knowledge of the history
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Recurrent Neural Network in Deep Learning </h2>                                                     
+<ul>
+  <li/> What is the consequence of having a "loop" in the neural network graph?
+  <li class=fragment /> Errors must be propagated through the loop! In the variable size dimension is time, errors need to be propagated to the past.
+</ul>
+  <img src="images/RNN-rolled.png" />
+  <p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Recurrent Neural Networks in Deep Learning </h2>
+<img src="images/RNN-unrolled.png" />
+
+<ul>
+  <li/> RNNs can be unfolded to form a deep neural network
+    <li/> The depth along the unfolded dimension is equal to the number of time steps.
+    <li/> An output can be produced at some or every time steps.
+    <li/> Depending on the output structure, different problems can be solved
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Example Tasks</h2>                                                     
+<img src="images/rnn_tasks.jpeg" />
+<ul>
+  <li /> Can you find examples for each case
+</ul>
+</textarea></section>
+
+
+
+
+
+<section data-markdown><textarea data-template>
+<h2> Simple Recurrent Neural Network </h2>                                                     
+<ul>
+  <li/> Also called Elman RNN, these are the simplest RNNs.
+    <img src="images/elman.png" />
+    <p class=ref> Elman, Finding Structure in Time <p>
+  $$ 
+  \begin{split}
+  h_t = \text{tanh}(W_{ih} x_t + W_{hh} h_{(t-1)} ) 
+  \end{split}
+  $$
+  <li/> A simple recurrent network is simply a network whose output feeds back to itself
+  <li/> Memory fades exponentially in time, and so RNNs have limited use cases. They are useful to understand the challenges of training RNNs.
+</ul>
+</textarea></section>
+
+
+
+<section data-markdown><textarea data-template>
+<h2> Unrolled Neural Network </h2>                                                     
+<ul>
+  <li /> We can use the same training framework as feed-forward networks by unrolling the variable-size dimension.
+  <img src="images/RNN-unrolled.png" />
+  <p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+  <li /> We apply back-propagation to the unrolled network. This is called Back-Propagation-Through-Time.
+  <li /> Conceptual difference wrt feedforward networks: Parameters are shared along the horizontal axis.
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Training a Simple Recurrent Neural Network </h2>                                                     
+<ul>
+  <li/> For sequential tasks, Pytorch expects tensor to have the following dimensions: [time, batch, data]
+  <li/> We will use the MNIST data, but feed the data in row by row.
+    <img src="images/row-by-row-mnist.jpeg" />
+  <li/> Building the Simple RNN explicitely
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/open?id=12oHupqDi4A3JzE88EYTVj6uaPiXJKfYp)
+
+  <li/> Using the built-in RNN (this one has only one layer)
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/open?id=1kCuVnz4gStdkQ9ru8YRVht74_GoLnwqW)
+
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Training Variable-Size Samples with Batches </h2>                                                     
+<ul>
+  <li /> We would like to leverage the GPUs parallel capability through batches (as we always did)
+  <li class=fragment /> But tensors cannot have variable sizes, i.e. [[2,3,4], [3,4]] cannot be stored as a tensor
+  <li class=fragment /> We need to pad the data: [[2,3,4], [3,4,None]] and let PyTorch know that the GPU process should not do anything when None is encountered.
+    <li class=fragment /> This requires padding, and packing sequences and involves some coding (we won't do it in this class) 
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> RNNs and the Vanishing Gradients Problem </h2>         
+<ul>
+  <li /> We can use the same training framework as feed-forward networks by unrolling the variable-size dimension.
+  <img src="images/RNN-unrolled.png" />
+  <p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+  <li /> We apply back-propagation to the unrolled network. This is called Back-Propagation-Through-Time.
+  <li class=fragment /> There are two problems
+    <ul  >
+      <li /> Memory grows without bounds
+      <li /> Vanishing gradients
+    </ul>
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Solving the Memory problem: Truncated Backpropagation </h2>                
+<ul>
+  <li /> We only backpropagate up to a certain point in the past
+    <img src="images/truncated_bptt.png" />
+  <li /> When compared to feedforward networks, this is like stopping backpropagation in an intermediate layer
+  <li /> In this class, we won't have to do this because we work with small models
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> The Vanishing Gradients Problem</h2>                            
+<p>The temporal separation between targets and inputs makes training difficult. This is called the temporal credit assignment problem</p>
+<ul>
+  <li /> Short-term dependencies
+  <img src="images/RNN-shorttermdepdencies.png" class=small />
+  <li /> Long-term dependencies
+  <img src="images/RNN-longtermdependencies.png" class=small />
+  <p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+  <li /> In simple RNNs, memory decays exponentially, so it cannot learn log-term dependencies in practice.
+    <p class=ref>Bengio et al. 1994</p>
+</ul>
+</div>
+
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Perfect Integrator </h2>                                                     
+<ul>
+  <li /> We <em>can</em> construct dynamics that keeps a perfect trace:
+    $$
+    h_t = h_{t-1} +f(x_t)
+    $$
+    but then we would be overwhelmed by noise
+  <li class=fragment /> The central problem for training networks with memory is that we must choose which information we should remember.
+  <li class=fragment /> But how can we choose what to remember if we don't know what we need to solve the problem?
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Forget Gates </h2> 
+<ul>
+<li />  Forget gates make storing and forgetting dynamic:
+$$
+x_t = \sigma(a_t) \odot x_{t-1} + f(a_t)
+$$
+
+<div class=row>
+  <div class=column>
+    <img src="images/LSTM3-gate.png" />
+  </div>
+  <div class=column>
+    <img src="https://ak6.picdn.net/shutterstock/videos/33064276/thumb/1.jpg" />
+  </div>
+</div>
+
+<li /> If $\sigma(a_t)=1$ we remember perfectly, at  $\sigma(a_t)=0$ we erase $x_{t-1}$
+<li /> $\sigma(a_t)$ is a layer of neurons that determines we remember. 
+<li /> Forget gates are the basic building blocks of all "modern" RNNs  
+</ul>
+</textarea></section>
+
+
+<section data-markdown><textarea data-template>
+<h2> Long-Short Term Memory</h2>                                                     
+<ul>
+  <li /> The LSTM is the solution to the long term dependency problem proposed by Hochreiter and Schmidhuber in 1997. It is still the state-of-the-art today.
+    <li /> The LSTM builds on the idea of conveying the hidden state without modification.
+  <li class=fragment /> A similar idea was used in a feed-forward network, do you remember which one?
+    <blockquote class=fragment>
+      Their Residual Net or ResNet is a special case of our Highway Net of May 2015, the first very deep feedforward networks with hundreds of layers. Highway nets are essentially feedforward versions of recurrent Long Short-Term Memory (LSTM) networks
+    </blockquote>
+<ul />
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Long-Short Term Memory</h2>                                                     
+
+<img src="images/LSTM3-chain.png" />
+<p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+<ul>
+  <li />The top horizontal line is the memory state, $C_t$
+  <li/> Let's go over the steps one by one
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> LSTM Walkthrough 1</h2>                                                     
+
+<img src="images/LSTM3-C-line.png" />
+<p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+<ul>
+  <li/> C is the memory state.
+  <li/> It is easy for the information to pass unchanged
+  <li /> The key building block is the gate discussed earlier
+  
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> LSTM Walkthrough 2</h2>                                                     
+<img src="images/LSTM3-focus-f.png" />
+<p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+<ul>
+  <li /> The forget gate: we decide how much of the memory state we will forget. The forgetting factor is a function of the previous hidden state and the input
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> LSTM Walkthrough 2</h2>                                                     
+<img src="images/LSTM3-focus-i.png" />
+<p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+<ul>
+  <li /> $\tilde {C}_t$ determines the candidate new memories to add to $C_t$
+  <li /> $i_t$ is an input gate determining which values we add
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> LSTM Walkthrough 3</h2>                                                     
+<img src="images/LSTM3-focus-C.png" />
+<p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+<ul>
+  <li /> $C_t$ gets updated...
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> LSTM Walkthrough: Output</h2>                                                     
+<img src="images/LSTM3-focus-o.png" />
+<p class=ref>https://colah.github.io/posts/2015-08-Understanding-LSTMs/</p>
+<ul>
+  <li /> Output: combining memory state $C_t$, input and an output gate $o_t$.
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Long-Short Term Memory Equations</h2>                                                     
+<div class=row>
+<div class=column>
+<img src="images/LSTM3-chain.png" />
+</div>
+<div class=column>
+$$
+        \begin{array}{ll} \\
+            i_t = \sigma(W_{ii} x_t  + W_{hi} h_{(t-1)} ) \\
+            f_t = \sigma(W_{if} x_t  + W_{hf} h_{(t-1)} ) \\
+            g_t = \tanh(W_{ig} x_t  + W_{hg} h_{(t-1)} ) \\
+            o_t = \sigma(W_{io} x_t  + W_{ho} h_{(t-1)} ) \\
+            c_t = f_t \odot c_{(t-1)} + i_t \odot g_t \\
+            h_t = o_t \odot \tanh(c_t) \\
+        \end{array}
+$$
+
+</div>
+<ul>
+  <li /> The choices in LSTM are arbitrary, several variants of LSTMs exist
+  <li /> Thankfully, there is a predefined LSTM model in PyTorch
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Feed-Forward vs. Recurrent Networks</h2>                                                     
+<ul>
+  <li/> Due to the difficulties of training recurrent neural networks, they are now falling out of favor. 
+  <li/> The State-of-the-art language and audio are feed-forward networks
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Feed-Forward Example For Time-Dependent Data: WaveNet</h2>
+<ul>
+  <li/> Wavenet is a type of feedforward Convnet. It uses convolutions "à trous" to obtain large receptive fields
+<div class=row>
+  <div class=column>
+    <img src="images/dilation.gif" />
+  </div>
+  <div class=column>
+    <img src="images/dilated_wavenet.png" />
+  </div>
+</div>
+<p class=ref> Van der Oord et al. 2016</p>
+  <li/> Learns generative model: 
+    $$
+    p(\mathbf{x}) = \prod_t p(x_t|x_{t-1}, ..., x_0)
+    $$
+    <li/> Wavenets are the state-of-the-art in audio generation. See <a href="https://deepmind.com/blog/article/wavenet-generative-model-raw-audio"> Google's blog </a>.
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Feed-Forward Example For Time-Dependent Data: BERT </h2>
+<ul>
+  <li/> Bert is the state-of-the-art in language modeling. It uses a feedforward "transformers with "self-attention block" to learn relations across text
+<div class=row>
+  <div class=column>
+    <img src="images/self-attention-block.png" />
+  </div>
+  <div class=column>
+    <img src="images/bert.png" />
+  </div>
+</div>
+<p class=ref> Van der Oord et al. 2016</p>
+  <li/> Trained to predict missing words: ("My dog is [MASK]", predict target "Hairy") and next sentence prediction
+<div class=row>
+  <div class=column>
+<blockquote>
+the man went to [MASK] store [SEP] he bought a gallon [MASK] milk 
+
+Label = IsNext
+</blockquote>
+  </div>
+  <div class=column>
+<blockquote>
+the man [MASK] to the store [SEP] penguin [MASK] are flight ##less birds 
+
+Label = NotNext
+</blockquote>
+  </div>
+</div>
+<li/> Wavenets are the state-of-the-art in audio generation. See <a href="https://deepmind.com/blog/article/wavenet-generative-model-raw-audio"> Google's blog </a>.
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Why use recurrent neural networks</h2>                                                     
+<ul>
+  <li/> Few recurrent connections in shallow neural networks can give them similar power to deep neural networks
+    <img src="images/cornet-brainscore.png" />
+    <p class=ref>Schrimpf et al. 2019</p>
+  <li/> Recurrent neural networks are Turing complete, <em> i.e.</em> they can theoretically emulated any computable algorithm
+  <li/> We may not have found the right way to train recurrent neural networks yet 
+    <p class=ref>Miller and Hardt, International Conference on Learning Representations, 2019</p>
+  <li/> The real world is continuous-time, physical computing systems (<em>e.g.</em> biological neurons) operate under real-time constraints. 
+</ul>
+</textarea></section>
+
+
+<section data-markdown><textarea data-template>
+  <h2>Anatomy of the Neuron</h2>
+  <img src="pli/neuron_drawing.png" />
+
+  - Dendrites: act as inputs ports 
+  - Soma: the body of the cell, usually where inputs converge and where action potentials are generated 
+  - Axon: propagates action potentials along to other neurons
+  - Terminal Boutons (Synapses): act as outputs of the neuron
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+  <h2>Membrane potential</h2>
+  <img src="common_img/bear-03-11.png" class=stretch />
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+  <h2>Action Potentials and the Axon</h2>
+  <img src="pli/neuron_drawing.png" />
+  <img src="common_img/bear-04-02-1.png" />
+
+  <p class=pl> Neurons communicate by all-or-none events called Action Potentials, or ``Spikes''</p>
+</textarea></section>
+
+
+<section data-markdown><textarea data-template>
+<h2> "Biological" neuron model: The Leaky Integrate and Fire Neuron. </h2>                                                     
+<div class=row>
+<div class=column>
+<ul>
+  <li/> Membrane Voltage
+    $$
+    \begin{split}
+    U_i(t) = &  V_i(t),\\
+    \tau_{mem}\frac{\mathrm{d}}{\mathrm{d}t} V_i(t) = & - V_i(t) + I_i(t),\\
+    \end{split}
+    $$
+
+  <li class=fragment /> Output Spike
+    $$
+    S_i = \Theta(U_i)
+    $$
+
+  <li class=fragment /> Synaptic Currents
+    $$
+    \begin{split}
+    \tau_{syn} \frac{\mathrm{d}}{\mathrm{d} t} I_{i}(t)  = & -I_{i}(t) + \sum_{j\in \text{pre}} W_{ij} S_j(t),
+    \end{split}
+    $$
+</ul>
+</div>
+<div class=column>
+  <img src="images/leaky_if.png" />
+</div>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Discrete-Time  Leaky Integrate and Fire Neuron. </h2>                                                     
+<div class=row>
+<div class=column>
+<ul>
+  <li /> In discrete time, the spiking neuron dynamics reduce to those of an RNN
+  $$
+  \begin{split}
+    U_i[t] &= \sum_j W_{ij} P_j[t]   , \\
+    S_i[t] &= \Theta( U_i[t]), \\
+    P_j[t+\Delta t] &= \alpha P_{j}[t] + (1-\alpha) Q_{j}[t], \\
+    Q_j[t+\Delta t] &= \beta  Q_{j}[t] + (1-\beta ) S_{j}[t], \\
+  \end{split}
+  $$
+
+  <li /> The activation function is a step function
+</ul>
+</div>
+<div class=column>
+  <img src="images/computational_graph_autodiff.png" class=large />
+</div>
+</div>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Surrogate Gradient Learning </h2>                                                     
+<img src="images/sg_loss_cartoon.svg" class=large />
+<ul>
+  <li/> With surrogate gradients, we can train any biological neuron dynamics using gradient backpropagation 
+  <li/> By approximating the temporal credit assignment problem, the gradient descent update is compatible with synaptic plasticity dynamics
+</ul>
+</textarea></section>
+
+<section data-markdown><textarea data-template>
+<h2> Deep Continuous Local Learning (DECOLLE) </h2>
+<h3>  </h3>
+<div class=row>
+<img src="images/decolle.png">
+</div>
+<p class=ref>Kaiser, Mostafa, Neftci, 2019</p>
+<ul>
+  <li/> State-of-the-art learning of spatio-temporal patterns
+</ul>
+</textarea></section>
+
+
+
+
+
+
+
+</div>
+</div>
+
+
+
+
+
+
+
+<!-- End of slides -->
+<script src="../reveal.js/lib/js/head.min.js"></script>
+<script src="js/reveal.js"></script>
+<script>
+Reveal.configure({ pdfMaxPagesPerSlide: 1, hash: true, slideNumber: true})
+Reveal.initialize({
+mouseWheel: false,
+width: 1280,
+height: 720,
+margin: 0.0,
+navigationMode: 'grid',
+transition: 'slide',
+menu: { // Menu works best with font-awesome installed: sudo apt-get install fonts-font-awesome
+    themes: false,
+    transitions: false,
+    markers: true,
+    hideMissingTitles: true,
+    custom: [
+              { title: 'Plugins', icon: '<i class="fa fa-external-link-alt"></i>', src: 'toc.html' },
+              { title: 'About', icon: '<i class="fa fa-info"></i>', src: 'about.html' }
+          ]
+  },
+math: {
+  mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js',
+  config: 'TeX-AMS_HTML-full', // See http://docs.mathjax.org/en/latest/config-files.html
+  // pass other options into `MathJax.Hub.Config()`
+  TeX: { Macros: { Dp: ["\\frac{\\partial #1}{\\partial #2}",2] }}
+  //TeX: { Macros: { Dp#1#2:  },
+},
+chalkboard: { 
+src:'slides_2-chalkboard.json',
+penWidth : 1.0,
+chalkWidth : 1.5,
+chalkEffect : .5, 
+readOnly: false, 
+toggleChalkboardButton: { left: "80px" },
+toggleNotesButton: { left: "130px" },
+transition: 100,
+theme: "whiteboard",
+},
+menu : { titleSelector: 'h1', hideMissingTitles: true,},
+keyboard: {
+67: function() { RevealChalkboard.toggleNotesCanvas() },	// toggle notes canvas when 'c' is pressed
+66: function() { RevealChalkboard.toggleChalkboard() },	// toggle chalkboard when 'b' is pressed
+46: function() { RevealChalkboard.reset() },	// reset chalkboard data on current slide when 'BACKSPACE' is pressed
+68: function() { RevealChalkboard.download() },	// downlad recorded chalkboard drawing when 'd' is pressed
+88: function() { RevealChalkboard.colorNext() },	// cycle colors forward when 'x' is pressed
+89: function() { RevealChalkboard.colorPrev() },	// cycle colors backward when 'y' is pressed
+},
+dependencies: [
+{ src: '../reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+{ src: 'plugin/markdown/marked.js' },
+{ src: 'plugin/markdown/markdown.js' },
+{ src: 'plugin/notes/notes.js', async: true },
+{ src: 'plugin/highlight/highlight.js', async: true, languages: ["Python"] },
+{ src: 'plugin/math/math.js', async: true },
+{ src: 'external-plugins/chalkboard/chalkboard.js' },
+//{ src: 'external-plugins/menu/menu.js'},
+{ src: 'node_modules/reveal.js-menu/menu.js' }
+]
+});
+</script>
+
+
+
+<script type="text/bibliography">
+  @article{gregor2015draw,
+    title={DRAW: A recurrent neural network for image generation},
+    author={Gregor, Karol and Danihelka, Ivo and Graves, Alex and Rezende, Danilo Jimenez and Wierstra, Daan},
+    journal={arXivreprint arXiv:1502.04623},
+    year={2015},
+    url={https://arxiv.org/pdf/1502.04623.pdf}
+  }
+</script>
+</body>
+</html>
+
+
