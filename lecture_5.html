@@ -119,10 +119,10 @@ Cross-entropy (XENT): Average length of a message from $q$ using code for $p$
 
 <div class=row>
   <div class=column>
-  <img src="pli/Colah_DogCatWordFreq.png" />
+  <img src="images/Colah_DogCatWordFreq.png" />
   </div>
   <div class=column>
-  <div class=fragment data-fragment-index="1"><img src="pli/CrossEntropyPQ.png" />
+  <div class=fragment data-fragment-index="1"><img src="images/CrossEntropyPQ.png" />
 <p class=ref>https://colah.github.io/posts/2015-09-Visual-Information/</p>
   </div>
   </div>
@@ -298,7 +298,7 @@ net.eval() #network is in testing mode, dropout is disabled, activities are scal
 
 <section data-markdown><textarea data-template>
     <h2>Weight Initialization</h2>
-    <img src="pli/Glorot_fig6.png" class="small" />
+    <img src="images/Glorot_fig6.png" class="small" />
     <p class=ref> Glorot and Bengio, 2010 </p>
 <ul>
   <li /> The parameters in a neural netwok must be initialized to some value. Setting all values to zero can be problematic, and should be avoided.
@@ -333,7 +333,7 @@ net.eval() #network is in testing mode, dropout is disabled, activities are scal
       <li />Nearly all state-of-the-art algorithms in AI/ML have a deep learning component, often in the form of structured neural networks known as Convolutional Neural Networks
     </ul>
 
-    <img src="pli/typical_cnn.png" class=stretch/>
+    <img src="images/typical_cnn.png" class=stretch/>
     <p class=ref>LeCun_etal98</p>
   <p class=pl>CNNs can learn end-to-end and outperform humans on certain recognition tasks</p>
 </textarea></section>
@@ -358,7 +358,7 @@ net.eval() #network is in testing mode, dropout is disabled, activities are scal
 
 <section data-markdown><textarea data-template>
   <h2>Tuning Curves</h2>
-  <img src="pli/orientation_selectivity.png" />
+  <img src="images/orientation_selectivity.png" />
   <p class=ref>Hubel & Wiesel, 1968</p>
 </textarea></section>
 
@@ -382,8 +382,8 @@ net.eval() #network is in testing mode, dropout is disabled, activities are scal
 
 <section data-markdown><textarea data-template>
 <h2>Columnar Organization of V1</h2>
-  <img src="pli/cortical_column.png" class=large />
-  <img src="pli/orientation_preference86.png" class=large />
+  <img src="images/cortical_column.png" class=large />
+  <img src="images/orientation_preference86.png" class=large />
   <p class=ref>Blasdel & Salama (1986)</p>
   
   <p class=pl>The receptive fields are tiled to cover the entire visual field</p>
@@ -392,15 +392,15 @@ net.eval() #network is in testing mode, dropout is disabled, activities are scal
 <section data-markdown><textarea data-template>
   <h2>Mimicking features of visual cortex in neural networks</h2>
   <b>Neocognitron: Precursor of Convolutional Neural Networks</b>
-  <img src="pli/neocognitron_fig3.png" class=stretch />
-  <img src="pli/neocognitron_fig1_fig2.png" class=stretch />
+  <img src="images/neocognitron_fig3.png" class=stretch />
+  <img src="images/neocognitron_fig1_fig2.png" class=stretch />
   <p class=ref>Fukushima, 1980</p>
 </textarea></section>
 
 <section data-markdown><textarea data-template>
   <h2>Mimicking features of visual cortex in neural networks</h2>
   <b>LeNet: Gradient-based learning applied to document recognition</b>
-  <img src="pli/lenet.png" class=stretch />
+  <img src="images/lenet.png" class=stretch />
   <p class=ref>LeCun et al. 1998</p>
 </textarea></section>
 
@@ -408,7 +408,7 @@ net.eval() #network is in testing mode, dropout is disabled, activities are scal
   <h2>Applications of Convolutional Neural Networks</h2>
   <ul>
     <li/> Image Recognition
-      <img src="pli/image_classification_example.jpg"  class=small />
+      <img src="images/image_classification_example.jpg"  class=small />
       <img src="images/google_image_caption.png" class=small />
       <p class=ref>Google Research Blog, 2014</p>
 
@@ -482,7 +482,7 @@ torch.nn.MaxPool2d(kernel_size, stride=None, padding=0, dilation=1, return_indic
 
 <section data-markdown><textarea data-template>
   <h2>Convolutional Layer Parameters</h2>
-  <img src="pli/depthcol.jpeg" class=small />
+  <img src="images/depthcol.jpeg" class=small />
   <p class=ref>Stanford CS231n class slides</p>
   <ul>
       <li/> Depth: Number of filters
@@ -552,7 +552,7 @@ See the demo here: [![Open In Colab](https://colab.research.google.com/assets/co
 
 <section data-markdown><textarea data-template>
   <h2>Krizhevsky et al. architecture</h2>
-  <img src="pli/fig2_Krizhevsky_etal12.png" class=stretch/>
+  <img src="images/fig2_Krizhevsky_etal12.png" class=stretch/>
   <p class=ref>Krizhevsky_etal12</p>
 
   
@@ -622,10 +622,11 @@ class LeNet(torch.nn.Module):
     \hat{x} = \mathrm{argmax}_x y_i(x)
   $$
       <li/><b>Deep Dream</b>
-        <img src="images/building-dreams.png" />
+        <!--  <img src="images/building-dreams.png" /> -->        
       <p class=ref> Google Blog, June 2015</p>
+      <center><iframe width="1000" height="315" max-height=700px max-width=1000px src="https://www.youtube.com/embed/SCE-QeDfXtA" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></center>
 
-      [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/open?id=1Uy0nWFaoNQ-QuLIH8-ANp2NMpo_WFNBU)
+       [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/open?id=1Uy0nWFaoNQ-QuLIH8-ANp2NMpo_WFNBU)
 </textarea></section>
 
 <section data-markdown><textarea data-template>
