@@ -1,4 +1,6 @@
 .idea/
+.git_old
+backup
 *.iml
 *.iws
 *.eml
