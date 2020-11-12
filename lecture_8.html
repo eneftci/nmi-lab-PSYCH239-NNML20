@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>reveal.js – NNML 2020</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/nmilab.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+    <link rel="stylesheet" type="text/css" href="https://cdn.rawgit.com/dreampulse/computer-modern-web-font/master/fonts.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="lib/css/monokai.css">
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css"
+    />
+    <link rel="stylesheet" href="reveal.js-plugins/appearance/appearance.css" />
+
+    
+    <link rel="stylesheet" href="plugin/highlight/monokai.css"  id="highlight-theme"  />
+<!-- Printing and PDF exports -->
+<script>
+  var link = document.createElement( 'link' );
+  link.rel = 'stylesheet';
+  link.type = 'text/css';
+  link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+  document.getElementsByTagName( 'head' )[0].appendChild( link );
+</script>
+
+
+<script>
+  //function for evaluation
+  function solve()
+  {
+          let w0 = document.getElementById("w0").value
+          let w1 = document.getElementById("w1").value
+          let b = document.getElementById("b").value
+          document.getElementById("a11").innerHTML = (eval(w0)*1+eval(w1)*1+eval(b)).toFixed(2)
+          document.getElementById("a10").innerHTML = (eval(w0)*1+eval(w1)*0+eval(b)).toFixed(2)
+          document.getElementById("a01").innerHTML = (eval(w0)*0+eval(w1)*1+eval(b)).toFixed(2)
+          document.getElementById("a00").innerHTML = (eval(w0)*0+eval(w1)*0+eval(b)).toFixed(2)
+          document.getElementById("y11").innerHTML = (((eval(w0)*1+eval(w1)*1+eval(b))>0)*1)
+          document.getElementById("y10").innerHTML = (((eval(w0)*1+eval(w1)*0+eval(b))>0)*1)
+          document.getElementById("y01").innerHTML = (((eval(w0)*0+eval(w1)*1+eval(b))>0)*1)
+          document.getElementById("y00").innerHTML = (((eval(w0)*0+eval(w1)*0+eval(b))>0)*1)
+          document.getElementById('w0val').innerHTML=eval(w0); 
+          document.getElementById('w1val').innerHTML=eval(w1); 
+          document.getElementById('bval').innerHTML=eval(b); 
+        }
+
+</script>
+
+
+
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+        <section data-external="title.html" data-vertical-align-top data-background-color=#B2BA67 ></section>
+        <section data-markdown data-vertical-align-top data-background-color=#B2BA67><textarea data-template>
+            <h1> Lecture 8: Generative Adversarial Networks (GANs) <br/> </h1>
+
+        </textarea></section>
+
+        <section data-markdown><textarea data-template>
+        <h2> Generative Adversarial Networks - a Brief intro </h2>
+        <ul>
+          <li/> A framework for estimating generative models via an adversarial process
+          <li  class=fragment /> Simultaneously train two models: 
+          <ul >
+            <li/>a generative model G that captures the data distribution
+            <li />a discriminative model D that estimates the probability that a sample came from the training data rather than G
+          </ul>
+        </ul>
+        <img src="images/GAN_overview.png" class=stretch />
+        </textarea></section>
+
+        <section data-markdown><textarea data-template>
+        <h2> Generative Adversarial Networks - Examples </h2>
+
+        <img src="images/ProgressiveGAN_fig6.png" class=stretch />
+        <p class=ref><a href=https://arxiv.org/pdf/1710.10196.pdf>Karras et al. 2017</a></p>
+        </textarea></section>
+
+        <section data-markdown><textarea data-template>
+        <h2> Generative Adversarial Networks - intuition </h2>                                                     
+        <blockquote><p>The generative model can be thought of as analogous to a team of counterfeiters,​
+        trying to produce fake currency and use it without detection, while the discriminative model is analogous to the police, trying to detect the counterfeit currency. Competition in this game drives both teams to improve their methods until the counterfeits are indistiguishable from the genuine articles.</p>
+        <footer>—Goodfellow, <cite>Generative Adversarial Networks</cite></footer>
+        </blockquote>
+        <img src="images/GAN_overview.png" class=stretch />
+        </textarea></section>
+
+        <section data-markdown><textarea data-template>
+        <h2> Generative Adversarial Networks - Some background </h2>
+        <ul>
+          <li/> Zero-sum game
+          <li/> Minimax
+          <ul>
+            <li/> You maximize your payoff
+            <li/> Your opponent tries to minimize your payoff
+          </ul>
+          <li/> Find Nash equilibrium
+          <ul>
+            <li/> Each player is assumed to know the equilibrium strategies of the other players, and no player has anything to gain by changing only their own strategy (source: Wikipedia)
+          </ul>
+        </ul>
+        </textarea></section>
+
+        <!--
+          Add general explanation about Generative Modeling itself and bridge the last lecture and GANs
+        -->
+
+        <section data-markdown><textarea data-template>
+        <h2> Generative Adversarial Networks - Cost and how it works </h2>
+        $$min_G max_D V(D,G) = \mathbb{E}_{x \sim p_{data}(x)} \left[ logD(x) \right] + \mathbb{E}_{z \sim p_z(z)} \left[ log(1 - D(G(z))) \right]$$
+        <ul>
+          <li/> $D$: the probability that a sample came from the training data rather than G
+          <li class=fragment /> First equation of the right hand side
+            <ul>
+              <li/> Sample data $x$ from real distribution
+              <li/> Since $x$ is sampled from real distribution, $D(x)$ should be close to 1
+            </ul>
+          <li  class=fragment /> Second equation of the right hand side
+            <ul>
+              <li/> Draw a noise $z$ from distribution $P_z$ and generate data $G(z)$
+              <li/> $G$ want to fool $D$: Want to make D(G(z)) close to 1
+            </ul>
+          <ul>
+            <li/> D wants to maximize (as close to 0 as possible) this quantity. G wants to minimize.
+          </ul>
+        </ul>
+        
+        [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1KRvrS_VhPuZPF4Jhglf24E77yfmatcgF?usp=sharing)
+        </textarea></section>
+
+        <section data-markdown data-vertical-align-top><textarea data-template>
+            <h2> Conditional GAN (cGAN) </h2>
+
+            <ul>
+              <li/> Although GANs showed successful image generation ability, there was no way to control or specify a certain type of image to generate
+              <li/> Conditional Generative Adversarial Nets was proposed a few months later
+            </ul>
+        <img src="images/ConditionalAdversarialNet.png" class=stretch />
+        </textarea></section>
+
+        <section data-markdown data-vertical-align-top><textarea data-template>
+          <h2> Implement cGAN </h2>
+
+          <ul>
+            <li/> The first cGAN simply concat additional information for conditioning
+        </ul>
+
+<pre><code class="Python" data-trim data-noescape>
+class Generator(nn.Module):
+  def __init__(self, batch, z_dim, out_shape, num_classes):
+    super(Generator, self).__init__()
+    self.batch_size = batch
+    self.z_dim = z_dim
+    self.out_shape = out_shape
+    self.num_classes = num_classes
+    self.fc1 = nn.Linear(z_dim+num_classes, 256) # simple concat
+</code></pre>
+
+        </textarea></section>
+
+
+
+      </div>
+    </div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/zoom/zoom.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/math/math.js"></script>
+		<script src="plugin/search/search.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+    <script src="reveal.js-plugins/menu/menu.js"></script>
+    <script src="reveal.js-plugins/audio-slideshow/plugin.js"></script>
+    <script src="reveal.js-plugins/audio-slideshow/recorder.js"></script>
+    <script src="reveal.js-plugins/audio-slideshow/RecordRTC.js"></script>
+    <script src="reveal.js-plugins/chalkboard/plugin.js"></script>
+    <script src="reveal.js-plugins/external/external.js"></script>
+    <script src="reveal.js-plugins/externalcode/externalcode.js"></script>
+    <script src="reveal.js-plugins/appearance/appearance.js"></script>
+
+		<script>
+      Reveal.configure({ pdfMaxPagesPerSlide: 1, hash: true, slideNumber: true})
+			// Also available as an ES module, see:
+			// https://revealjs.com/initialization/
+			Reveal.initialize({
+        mouseWheel: false,
+        width: 1280,
+        height: 720,
+        margin: 0.0,
+        navigationMode: 'grid',
+        transition: 'fade',
+				controls: true,
+				progress: true,
+				center: true,
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [Appearance, RevealZoom, RevealSearch, RevealMarkdown, RevealHighlight, RevealAudioRecorder, RevealAudioSlideshow, RevealMath, RevealExternal, Externalcode, RevealMenu],
+
+      	menu: { // Menu works best with font-awesome installed: sudo apt-get install fonts-font-awesome
+					themes: false,
+					transitions: false,
+					markers: true,
+					hideMissingTitles: true,
+					custom: [
+				            { title: 'Plugins', icon: '<i class="fa fa-external-link-alt"></i>', src: 'toc.html' },
+				            { title: 'About', icon: '<i class="fa fa-info"></i>', src: 'about.html' }
+				        ]
+				},
+
+      audio: {
+        prefix: 'audio/lecture_8/', 	// audio files are stored in the "audio" folder
+        suffix: '.ogg',		// audio files have the ".ogg" ending
+        textToSpeechURL: null,  // the URL to the text to speech converter
+        defaultNotes: false, 	// use slide notes as default for the text to speech converter
+        defaultText: false, 	// use slide text as default for the text to speech converter
+        advance: 300, 		// advance to next slide after given time in milliseconds after audio has played, use negative value to not advance
+        autoplay: false,	// automatically start slideshow
+        defaultDuration: 1.0,	// default duration in seconds if no audio is available
+        defaultAudios: true,	// try to play audios with names such as audio/1.2.ogg
+        playerOpacity: 0.5,	// opacity value of audio player if unfocused
+        playerStyle: 'position: fixed; bottom: 4px; left: 25%; width: 50%; height:75px; z-index: 33;', // style used for container of audio controls
+        startAtFragment: false, // when moving to a slide, start at the current fragment or at the start of the slide
+      },
+      // ...
+
+
+				keyboard: { 
+					82: function() { Recorder.toggleRecording(); },	// press 'r' to start/stop recording
+					90: function() { Recorder.downloadZip(); }, 	// press 'z' to download zip containing audio files
+					84: function() { Recorder.fetchTTS(); } 	// press 't' to fetch TTS audio files
+  				}
+
+
+    });
+		</script>
+
+
+	</body>
+</html>

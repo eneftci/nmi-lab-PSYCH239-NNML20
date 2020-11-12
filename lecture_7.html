@@ -136,13 +136,13 @@ class MyTrainingDataset(Dataset):
         self.root = root
         self.transform = transform
         self.target_transform = target_transform
-				self.data = np.load(self.root) #replace this
+        self.data = np.load(self.root) #replace this
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
-				... #write here code to obtain one data sample and target
+        ... #write here code to obtain one data sample and target
 
         if self.transform:
             sample = self.transform(sample)
