@@ -528,7 +528,7 @@ $$
 <div>
 $$
 \begin{align*}
-U^{t+1} & = \beta  U^t + W S^t_{in} - S^t \tag{Membrane Potential}\\
+U^{t+1} & = \beta  U^t + (1-\beta) W S^t_{in} - S^t \tag{Membrane Potential}\\
 S^t &= \Theta(U^t-1) \tag{Spike & Reset} \\
 \beta & = \exp(\frac{t}{\tau_{mem}})\\
 \end{align*}
